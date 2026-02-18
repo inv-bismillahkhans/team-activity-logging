@@ -30,6 +30,7 @@ export function ActivityForm({ members, activityTypes, onSubmit, onClose, initia
   const [duration, setDuration] = useState('1')
   const [status, setStatus] = useState<'pending' | 'completed'>('completed')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [blocker, setBlocker] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,6 +53,7 @@ export function ActivityForm({ members, activityTypes, onSubmit, onClose, initia
         date: new Date(date),
         duration: parseInt(duration),
         status,
+        blocker,
       }
 
       await onSubmit(newActivity)
@@ -175,6 +177,13 @@ export function ActivityForm({ members, activityTypes, onSubmit, onClose, initia
               onChange={(e) => setDescription(e.target.value)}
               className="bg-secondary border-border text-foreground min-h-24"
             />
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Blocker</span>
+              <Switch
+                checked={blocker}
+                onCheckedChange={(checked) => setBlocker(checked)}
+              />
+            </div>
           </div>
 
           <div className="flex gap-3 justify-end">

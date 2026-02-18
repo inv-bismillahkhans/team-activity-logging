@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { readSheet, appendRow, ensureHeaders, SHEET_NAMES } from '@/lib/google-sheets'
 
-const HEADERS = ['id', 'memberId', 'memberName', 'activityType', 'description', 'date', 'duration', 'status']
+const HEADERS = ['id', 'memberId', 'memberName', 'activityType', 'description', 'date', 'duration', 'status', 'blocker']
 
 function rowToActivity(row: string[]) {
   return {
@@ -13,6 +13,7 @@ function rowToActivity(row: string[]) {
     date: row[5] ? new Date(row[5]) : new Date(),
     duration: parseInt(row[6] || '0', 10),
     status: row[7] || 'completed',
+    blocker: row[8] || false,
   }
 }
 
@@ -46,6 +47,7 @@ export async function POST(request: Request) {
       date.toISOString().split('T')[0],
       String(body.duration ?? 0),
       body.status || 'completed',
+      body.blocker || false,
     ]
     await appendRow(SHEET_NAMES.ACTIVITIES, row)
     return NextResponse.json({
