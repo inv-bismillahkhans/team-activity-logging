@@ -43,6 +43,15 @@ export function ActivityReports({ activities, members, activityTypes }: any) {
   const totalHours = activities.reduce((sum: number, activity: any) => sum + activity.duration, 0) / 60
   const avgActivityLength = totalActivities > 0 ? Math.round(activities.reduce((sum: number, activity: any) => sum + activity.duration, 0) / totalActivities) : 0
 
+  const blockerActivities = activities.filter(
+    (a: any) =>
+      a.blocker === true ||
+      a.blocker === "TRUE" ||
+      a.blocker === "true"
+  )
+
+  const totalBlockers = blockerActivities.length
+  
   // Activities by day (last 7 days)
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const date = new Date()
@@ -89,7 +98,7 @@ export function ActivityReports({ activities, members, activityTypes }: any) {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card className="bg-card border-border">
           <CardContent className="pt-6">
             <div className="space-y-2">
@@ -122,6 +131,17 @@ export function ActivityReports({ activities, members, activityTypes }: any) {
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">Team Members</p>
               <p className="text-3xl font-bold text-primary">{members.length}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card border-border">
+          <CardContent className="pt-6">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Blockers</p>
+              <p className="text-3xl font-bold text-red-600">
+                🚨 {totalBlockers}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -231,6 +251,53 @@ export function ActivityReports({ activities, members, activityTypes }: any) {
           </div>
         </CardContent>
       </Card>
+
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <CardTitle>🚨 Current Blockers</CardTitle>
+          <CardDescription>
+            Activities that are blocked and need attention
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          {totalBlockers === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No blockers reported 🎉
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {blockerActivities.map((activity: any) => (
+                <div
+                  key={activity.id}
+                  className="p-4 border border-red-500 rounded-xl bg-red-50"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-semibold text-red-700">
+                        {activity.memberName}
+                      </h4>
+
+                      <p className="text-sm text-muted-foreground">
+                        {activity.description}
+                      </p>
+                    </div>
+
+                    <Badge className="bg-red-600 text-white">
+                      Blocker 🚨
+                    </Badge>
+                  </div>
+
+                  <p className="text-xs text-gray-500 mt-2">
+                    Date: {new Date(activity.date).toLocaleDateString()} · Status: {activity.status}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      {/* Export Popup */}
       {showExportPopup && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
 
@@ -309,8 +376,9 @@ export function ActivityReports({ activities, members, activityTypes }: any) {
               className="w-full border border-border rounded-lg p-2 bg-background text-foreground"
             >
               <option value="all">All Activities</option>
-              <option value="week">Work Done This Week</option>
               <option value="pending">Pending Activities</option>
+              <option value="completed">Completed Activities</option>
+              <option value="blocker">Blocker Activities</option>
             </select>
           </div>
 
