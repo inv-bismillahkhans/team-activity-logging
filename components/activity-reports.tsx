@@ -15,6 +15,7 @@ export function ActivityReports({ activities, members, activityTypes }: any) {
   const [fromDate, setFromDate] = useState("")
   const [toDate, setToDate] = useState("")
   const [reportType, setReportType] = useState("all")
+  const [exportFormat, setExportFormat] = useState("csv")
 
   // Calculate total hours by member
   const hoursByMember = members.map((member: any) => {
@@ -94,6 +95,7 @@ export function ActivityReports({ activities, members, activityTypes }: any) {
     setSelectedEmployee("")
     setFromDate("")
     setToDate("")
+    setExportFormat("csv")
   }
 
   return (
@@ -394,35 +396,46 @@ export function ActivityReports({ activities, members, activityTypes }: any) {
           </div>
 
           {/* Buttons */}
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex flex-col gap-4 pt-4">
 
-            <Button
-              variant="outline"
-              onClick={() => setShowExportPopup(false)}
-            >
-              Cancel
-            </Button>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Download Format
+              </label>
 
-            <Button
-              className="bg-green-600 text-white hover:bg-green-700"
-              onClick={() => generateEmployeeReport("csv")}
-            >
-              Download CSV
-            </Button>
+              <select
+                value={exportFormat}
+                onChange={(e) => setExportFormat(e.target.value)}
+                className="w-full border border-border rounded-lg p-2 bg-background text-foreground"
+              >
+                <option value="csv">CSV File</option>
+                <option value="ppt">PowerPoint (PPT)</option>
+                <option value="pdf">PDF Report</option>
+              </select>
+            </div>
+            
+            <div className="flex justify-end gap-3">
 
-            <Button
-              className="bg-blue-600 text-white hover:bg-blue-700"
-              onClick={() => generateEmployeeReport("ppt")}
-            >
-              Download PPT
-            </Button>
+              {/* Cancel */}
+              <Button
+                variant="outline"
+                onClick={() => setShowExportPopup(false)}
+              >
+                Cancel
+              </Button>
 
-            <Button
-              className="bg-red-600 text-white hover:bg-red-700"
-              onClick={() => generateEmployeeReport("pdf")}
-            >
-              Download PDF
-            </Button>
+              {/* ✅ Single Download Button */}
+              <Button
+                className="bg-purple-600 text-white hover:bg-purple-700"
+                onClick={() =>
+                  generateEmployeeReport(exportFormat as "csv" | "ppt" | "pdf")
+                }
+              >
+                Download Report
+              </Button>
+
+            </div>
+              
           </div>
         </div>
       </div>
