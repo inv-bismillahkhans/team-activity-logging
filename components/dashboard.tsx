@@ -193,7 +193,7 @@ export function Dashboard({ activities, members, activityTypes, onSelectDay, onO
                       day !== null
                         ? selectedDay === day
                           ? 'bg-primary/20 border-primary'
-                          : 'bg-secondary/30 hover:bg-secondary/50 hover:border-primary/50'
+                          : ' bg-muted hover:bg-muted/80 hover:border-primary/80'
                         : ''
                     }`}
                   >
