@@ -34,13 +34,27 @@ export async function GET(req: Request) {
     const rows = response.data.values || []
     const data = rows.slice(1)
 
+    const start = new Date(from)
+    const end = new Date(to)
+
+    start.setHours(0, 0, 0, 0)
+    end.setHours(23, 59, 59, 999)
+
     // ✅ Filter Data
     const filtered = data.filter((row) => {
       const name = row[2]
       const status = row[7]
       const blocker = row[8]
 
+      const rawDate = row[5]
+      if (!rawDate) return false
+
+      const rowDate = new Date(rawDate)
+      rowDate.setHours(0, 0, 0, 0)
+
       if (employee !== "All Employees" && name !== employee) return false
+
+      if (rowDate < start || rowDate > end) return false
 
       if (type === "pending" && status !== "pending") return false
       if (type === "completed" && status !== "completed") return false
