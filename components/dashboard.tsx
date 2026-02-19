@@ -5,12 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight, Filter, Check, Clock } from 'lucide-react'
+import { PendingTasksDialog } from '@/components/ui/pending-tasks-dialog'
 
 export function Dashboard({ activities, members, activityTypes, onSelectDay, onOpenForm }: any) {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 1, 11))
   const [selectedMember, setSelectedMember] = useState<string | null>(null)
   const [selectedType, setSelectedType] = useState<string | null>(null)
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
+  const [showPendingTasks, setShowPendingTasks] = useState(false)
 
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()
   const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay()
@@ -144,7 +146,14 @@ export function Dashboard({ activities, members, activityTypes, onSelectDay, onO
               <CardTitle className="text-xl">{monthName}</CardTitle>
               <CardDescription>Activity calendar — click a day to add or view activities</CardDescription>
             </div>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              <Button
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                onClick={() => setShowPendingTasks(true)}
+              >
+                <Clock className="w-4 h-4 mr-2" />
+                Pending Tasks
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -173,56 +182,61 @@ export function Dashboard({ activities, members, activityTypes, onSelectDay, onO
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-7 gap-2 sm:gap-3 items-start">
+            <div className="grid grid-cols-7 gap-2 sm:gap-3 items-stretch">
               {calendarDays.map((day, index) => {
                 const activityCount = day !== null ? (activitiesByDate[day] || []).length : 0
                 return (
-                <div
-                  key={index}
-                  onClick={() => day !== null && handleDayClick(day)}
-                  className={`rounded-lg border border-border p-2 sm:p-3 flex flex-col min-h-[6rem] cursor-pointer transition-all ${
-                    activityCount > 3 ? 'min-h-[8rem]' : ''
-                  } ${activityCount > 6 ? 'min-h-[11rem]' : ''} ${
-                    activityCount > 10 ? 'min-h-[14rem]' : ''
-                  } ${day !== null
-                      ? selectedDay === day
-                        ? 'bg-primary/20 border-primary'
-                        : 'bg-secondary/30 hover:bg-secondary/50 hover:border-primary/50'
-                      : ''
-                  }`}
-                  style={activityCount > 15 ? { minHeight: `${6 + activityCount * 1.75}rem` } : undefined}
-                >
-                  {day !== null ? (
-                    <>
-                      <div className="text-sm sm:text-base font-medium text-foreground mb-1 sm:mb-2 shrink-0">{day}</div>
-                      <div className="flex-1 space-y-1 min-h-0">
-                        {(activitiesByDate[day] || []).map((activity: any) => {
-                          const isCompleted = (activity.status || 'completed') === 'completed'
-                          return (
-                          <div
-                            key={activity.id}
-                            className="text-[10px] sm:text-xs py-0.5 sm:py-1 px-1.5 sm:px-2 rounded truncate text-white leading-tight flex items-center gap-1"
-                            style={{ backgroundColor: getActivityTypeColor(activity.activityType) }}
-                            title={activity.description}
-                          >
-                                                {isCompleted ? (
-                        <Check className="w-3 h-3 shrink-0" style={{strokeWidth: 3}} />
-                      ) : (
-                        <Clock className="w-3 h-3 shrink-0" style={{strokeWidth: 3}} />
-                      )}
-                            <span className="truncate font-bold">{getMemberName(activity.memberId)}</span>
-                          </div>
-                          )
-                        })}
-                      </div>
-                    </>
-                  ) : null}
-                </div>
-              )})}
+                  <div
+                    key={index}
+                    onClick={() => day !== null && handleDayClick(day)}
+                    className={`rounded-lg border border-border p-2 sm:p-3 flex flex-col min-h-[8rem] cursor-pointer transition-all ${
+                      day !== null
+                        ? selectedDay === day
+                          ? 'bg-primary/20 border-primary'
+                          : ' bg-muted hover:bg-muted/80 hover:border-primary/80'
+                        : ''
+                    }`}
+                  >
+                    {day !== null ? (
+                      <>
+                        <div className="text-sm sm:text-base font-medium text-foreground mb-1 sm:mb-2 shrink-0 text-center">{day}</div>
+                        <div className="flex-1 space-y-1">
+                          {(activitiesByDate[day] || []).map((activity: any) => {
+                            const isCompleted = (activity.status || 'completed') === 'completed'
+                            return (
+                              <div
+                                key={activity.id}
+                                className="text-[10px] sm:text-xs py-0.5 sm:py-1 px-1.5 sm:px-2 rounded truncate text-white leading-tight flex items-center gap-1"
+                                style={{ backgroundColor: getActivityTypeColor(activity.activityType) }}
+                                title={activity.description}
+                              >
+                                {isCompleted ? (
+                                  <Check className="w-3 h-3 shrink-0" style={{ strokeWidth: 3 }} />
+                                ) : (
+                                  <Clock className="w-3 h-3 shrink-0" style={{ strokeWidth: 3 }} />
+                                )}
+                                <span className="truncate font-bold">{getMemberName(activity.memberId)}</span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </>
+                    ) : null}
+                  </div>
+                )
+              })}
             </div>
           </div>
         </CardContent>
       </Card>
+
+      <PendingTasksDialog
+        open={showPendingTasks}
+        onOpenChange={setShowPendingTasks}
+        activities={activities}
+        members={members}
+        currentDate={currentDate}
+      />
     </div>
   )
 }

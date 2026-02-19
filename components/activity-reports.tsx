@@ -10,6 +10,13 @@ import { Download } from 'lucide-react'
 export function ActivityReports({ activities, members, activityTypes }: any) {
   const [period, setPeriod] = useState('month')
 
+  const [showExportPopup, setShowExportPopup] = useState(false)
+  const [selectedEmployee, setSelectedEmployee] = useState("")
+  const [fromDate, setFromDate] = useState("")
+  const [toDate, setToDate] = useState("")
+  const [reportType, setReportType] = useState("all")
+  const [exportFormat, setExportFormat] = useState("csv")
+
   // Calculate total hours by member
   const hoursByMember = members.map((member: any) => {
     const totalMinutes = activities
@@ -37,6 +44,15 @@ export function ActivityReports({ activities, members, activityTypes }: any) {
   const totalHours = activities.reduce((sum: number, activity: any) => sum + activity.duration, 0) / 60
   const avgActivityLength = totalActivities > 0 ? Math.round(activities.reduce((sum: number, activity: any) => sum + activity.duration, 0) / totalActivities) : 0
 
+  const blockerActivities = activities.filter(
+    (a: any) =>
+      a.blocker === true ||
+      a.blocker === "TRUE" ||
+      a.blocker === "true"
+  )
+
+  const totalBlockers = blockerActivities.length
+  
   // Activities by day (last 7 days)
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const date = new Date()
@@ -50,6 +66,38 @@ export function ActivityReports({ activities, members, activityTypes }: any) {
     }
   }).reverse()
 
+  const generateEmployeeReport = (format: "csv" | "ppt" | "pdf") => {
+    if (!fromDate || !toDate) {
+      alert("Please select date range")
+      return
+    }
+
+    const employeeParam = selectedEmployee ? selectedEmployee : "";
+
+    let url = "";
+  
+    switch (format) {
+      case "csv":
+        url = `/api/export?sheetId=${process.env.NEXT_PUBLIC_SHEET_ID}&employee=${employeeParam}&from=${fromDate}&to=${toDate}&type=${reportType}`
+        break
+      case "ppt":
+        url = `/api/export-ppt?sheetId=${process.env.NEXT_PUBLIC_SHEET_ID}&employee=${employeeParam}&from=${fromDate}&to=${toDate}&type=${reportType}`
+        break
+      case "pdf":
+        url = `/api/export-pdf?sheetId=${process.env.NEXT_PUBLIC_SHEET_ID}&employee=${employeeParam}&from=${fromDate}&to=${toDate}&type=${reportType}`
+        break
+    }
+  
+    window.open(url, "_blank");
+  
+    // Close popup after export
+    setShowExportPopup(false)
+    setSelectedEmployee("")
+    setFromDate("")
+    setToDate("")
+    setExportFormat("csv")
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -57,13 +105,13 @@ export function ActivityReports({ activities, members, activityTypes }: any) {
           <h2 className="text-2xl font-bold text-foreground">Activity Reports</h2>
           <p className="text-sm text-muted-foreground">Analytics and insights on team activities</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => setShowExportPopup(true)}>
           <Download className="w-4 h-4 mr-2" />
           Export Report
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card className="bg-card border-border">
           <CardContent className="pt-6">
             <div className="space-y-2">
@@ -96,6 +144,17 @@ export function ActivityReports({ activities, members, activityTypes }: any) {
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">Team Members</p>
               <p className="text-3xl font-bold text-primary">{members.length}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card border-border">
+          <CardContent className="pt-6">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Blockers</p>
+              <p className="text-3xl font-bold text-red-600">
+                🚨 {totalBlockers}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -205,6 +264,182 @@ export function ActivityReports({ activities, members, activityTypes }: any) {
           </div>
         </CardContent>
       </Card>
+
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <CardTitle>🚨 Current Blockers</CardTitle>
+          <CardDescription>
+            Activities that are blocked and need attention
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          {totalBlockers === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No blockers reported 🎉
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {blockerActivities.map((activity: any) => (
+                <div
+                  key={activity.id}
+                  className="p-4 border border-red-500 rounded-xl bg-red-50"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-semibold text-red-700">
+                        {activity.memberName}
+                      </h4>
+
+                      <p className="text-sm text-muted-foreground">
+                        {activity.description}
+                      </p>
+                    </div>
+
+                    <Badge className="bg-red-600 text-white">
+                      Blocker 🚨
+                    </Badge>
+                  </div>
+
+                  <p className="text-xs text-gray-500 mt-2">
+                    Date: {new Date(activity.date).toLocaleDateString()} · Status: {activity.status}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      {/* Export Popup */}
+      {showExportPopup && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+
+        <div className="bg-card w-full max-w-2xl rounded-2xl shadow-xl p-8 space-y-6">
+
+          {/* Title */}
+          <div>
+            <h3 className="text-xl font-bold text-foreground">
+              Export Activity Report
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Select employee and date range to export report.
+            </p>
+          </div>
+
+          {/* Employee Dropdown */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
+              Select Employee
+            </label>
+
+            <select
+              value={selectedEmployee}
+              onChange={(e) => setSelectedEmployee(e.target.value)}
+              className="w-full border border-border rounded-lg p-2 bg-background text-foreground"
+            >
+              <option value="">All Employees</option>
+
+              {members.map((member: any) => (
+                <option key={member.id} value={member.name}>
+                  {member.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Date Range */}
+          <div className="grid grid-cols-2 gap-4">
+
+            {/* From Date */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                From Date
+              </label>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="w-full border border-border rounded-lg p-2 bg-background text-foreground"
+              />
+            </div>
+
+            {/* To Date */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                To Date
+              </label>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="w-full border border-border rounded-lg p-2 bg-background text-foreground"
+              />
+            </div>
+
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
+              Report Type
+            </label>
+
+            <select
+              value={reportType}
+              onChange={(e) => setReportType(e.target.value)}
+              className="w-full border border-border rounded-lg p-2 bg-background text-foreground"
+            >
+              <option value="all">All Activities</option>
+              <option value="pending">Pending Activities</option>
+              <option value="completed">Completed Activities</option>
+              <option value="blocker">Blocker Activities</option>
+            </select>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex flex-col gap-4 pt-4">
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Download Format
+              </label>
+
+              <select
+                value={exportFormat}
+                onChange={(e) => setExportFormat(e.target.value)}
+                className="w-full border border-border rounded-lg p-2 bg-background text-foreground"
+              >
+                <option value="csv">CSV File</option>
+                <option value="ppt">PowerPoint (PPT)</option>
+                <option value="pdf">PDF Report</option>
+              </select>
+            </div>
+            
+            <div className="flex justify-end gap-3">
+
+              {/* Cancel */}
+              <Button
+                variant="outline"
+                onClick={() => setShowExportPopup(false)}
+              >
+                Cancel
+              </Button>
+
+              {/* ✅ Single Download Button */}
+              <Button
+                className="bg-purple-600 text-white hover:bg-purple-700"
+                onClick={() =>
+                  generateEmployeeReport(exportFormat as "csv" | "ppt" | "pdf")
+                }
+              >
+                Download Report
+              </Button>
+
+            </div>
+              
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   )
 }

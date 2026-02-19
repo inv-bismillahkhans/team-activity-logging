@@ -10,6 +10,8 @@ import { ActivityReports } from '@/components/activity-reports'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Plus, Loader2, AlertCircle } from 'lucide-react'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
+
 
 export default function Page() {
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -143,12 +145,15 @@ export default function Page() {
           <span>{error}</span>
         </div>
       )}
-      <nav className="border-b border-border bg-card">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-primary">Team Activity Logger</h1>
-            <p className="text-sm text-muted-foreground">Track and manage team member activities</p>
-          </div>
+     <nav className="border-b border-border bg-card">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-primary">Team Activity Logger</h1>
+          <p className="text-sm text-muted-foreground">Track and manage team member activities</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+
           <Button
             onClick={() => setShowActivityForm(true)}
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
@@ -157,7 +162,8 @@ export default function Page() {
             Log Activity
           </Button>
         </div>
-      </nav>
+      </div>
+    </nav>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
