@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { BarChart, Bar, LineChart,Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { Download } from 'lucide-react'
 
 export function ActivityReports({ activities, members, activityTypes }: any) {
@@ -105,7 +105,27 @@ export function ActivityReports({ activities, members, activityTypes }: any) {
           <h2 className="text-2xl font-bold text-foreground">Activity Reports</h2>
           <p className="text-sm text-muted-foreground">Analytics and insights on team activities</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => setShowExportPopup(true)}>
+        <Button
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+          onClick={() => {
+            const now = new Date()
+
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+
+            const formatLocalDate = (date: Date) => {
+              const year = date.getFullYear()
+              const month = String(date.getMonth() + 1).padStart(2, "0")
+              const day = String(date.getDate()).padStart(2, "0")
+              return `${year}-${month}-${day}`
+            }
+
+            setFromDate(formatLocalDate(firstDay))
+            setToDate(formatLocalDate(lastDay))
+
+            setShowExportPopup(true)
+          }}
+        >
           <Download className="w-4 h-4 mr-2" />
           Export Report
         </Button>
@@ -166,9 +186,9 @@ export function ActivityReports({ activities, members, activityTypes }: any) {
             <CardTitle>Activities by Member</CardTitle>
             <CardDescription>Total hours logged per team member</CardDescription>
           </CardHeader>
-          <CardContent>
+         <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={hoursByMember}>
+              <LineChart data={hoursByMember}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
                 <YAxis stroke="hsl(var(--muted-foreground))" />
@@ -181,8 +201,15 @@ export function ActivityReports({ activities, members, activityTypes }: any) {
                   formatter={(value) => `${value}h`}
                 />
                 <Legend />
-                <Bar dataKey="hours" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
-              </BarChart>
+                <Line
+                  type="monotone"
+                  dataKey="hours"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={3}
+                  dot={{ r: 4 }}
+                />
+
+              </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
