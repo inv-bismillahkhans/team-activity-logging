@@ -1,0 +1,174 @@
+function doGet(e) {
+
+  if (!e) {
+    return ContentService.createTextOutput(
+      "doGet was run manually. No URL parameters received."
+    );
+  }
+
+  const action = e.parameter.action;
+
+  return ContentService.createTextOutput("Invalid Request");
+}
+
+function sendWeeklyPdfReport() {
+
+  const email = "syam.sg@innovaturelabs.com";
+
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Activities");
+  const data = sheet.getDataRange().getValues();
+
+  const today = new Date();
+  const lastWeek = new Date();
+  lastWeek.setDate(today.getDate() - 7);
+
+  let filteredRows = [];
+  filteredRows.push(data[0]);
+
+  for (let i = 1; i < data.length; i++) {
+    const rowDate = new Date(data[i][5]);
+
+    if (rowDate >= lastWeek && rowDate <= today) {
+      filteredRows.push(data[i]);
+    }
+  }
+
+  if (filteredRows.length === 1) {
+    Logger.log("❌ No weekly data found.");
+    return;
+  }
+
+  let html = `
+    <h2 style="color:darkblue;">Weekly Activity Report</h2>
+    <p><b>From:</b> ${lastWeek.toDateString()}  
+       <b>To:</b> ${today.toDateString()}</p>
+
+    <table border="1" cellpadding="5" cellspacing="0"
+           style="border-collapse:collapse; font-size:12px;">
+  `;
+
+  filteredRows.forEach(row => {
+    html += "<tr>";
+    row.forEach(cell => {
+      html += `<td>${cell}</td>`;
+    });
+    html += "</tr>";
+  });
+
+  html += "</table>";
+
+  const pdfBlob = Utilities.newBlob(html, "text/html")
+    .getAs("application/pdf")
+    .setName("Weekly_Activity_Report.pdf");
+
+  MailApp.sendEmail({
+    to: email,
+    subject: "📌 Weekly Team Activity Report",
+    htmlBody: `
+      Hi Syam,<br><br>
+      Please find attached the weekly activity report.<br><br>
+      Regards,<br>
+      Activity Logging System
+    `,
+    attachments: [pdfBlob]
+  });
+
+  Logger.log("✅ Weekly report email sent successfully!");
+}
+
+function createWeeklyTrigger() {
+
+  const triggers = ScriptApp.getProjectTriggers();
+  triggers.forEach(trigger => {
+    if (trigger.getHandlerFunction() === "sendWeeklyPdfReport") {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
+
+  ScriptApp.newTrigger("sendWeeklyPdfReport")
+    .timeBased()
+    .everyWeeks(1)
+    .onWeekDay(ScriptApp.WeekDay.MONDAY)
+    .atHour(9)
+    .create();
+
+  Logger.log("✅ Weekly trigger created successfully!");
+}
+
+function sendMonthlyPdfReport() {
+
+  const email = "syam.sg@innovaturelabs.com";
+
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Activities");
+  const data = sheet.getDataRange().getValues();
+
+  const today = new Date();
+
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  let filteredRows = [];
+  filteredRows.push(data[0]);
+
+  for (let i = 1; i < data.length; i++) {
+    const rowDate = new Date(data[i][5]);
+
+    if (rowDate >= firstDay && rowDate <= today) {
+      filteredRows.push(data[i]);
+    }
+  }
+
+  if (filteredRows.length === 1) {
+    Logger.log("No monthly data found.");
+    return;
+  }
+
+  let html = "<h2>📅 Monthly Activity Report</h2>";
+  html += `<p>From: ${firstDay.toDateString()} To: ${today.toDateString()}</p>`;
+  html += "<table border='1' cellpadding='5' cellspacing='0'>";
+
+  filteredRows.forEach(row => {
+    html += "<tr>";
+    row.forEach(cell => {
+      html += `<td>${cell}</td>`;
+    });
+    html += "</tr>";
+  });
+
+  html += "</table>";
+
+  const tempFile = DriveApp.createFile(
+    "Monthly_Report.html",
+    html,
+    MimeType.HTML
+  );
+
+  const pdfBlob = tempFile.getAs("application/pdf")
+    .setName("Monthly_Activity_Report.pdf");
+
+  tempFile.setTrashed(true);
+
+  MailApp.sendEmail({
+    to: email,
+    subject: "📅 Monthly Team Activity Report",
+    htmlBody: `
+      Hi Syam,<br><br>
+      Please find attached the monthly activity report.<br><br>
+      Regards,<br>
+      Activity Logging System
+    `,
+    attachments: [pdfBlob]
+  });
+
+  Logger.log("✅ Monthly PDF Report Sent Successfully!");
+}
+
+function createMonthlyTrigger() {
+
+  ScriptApp.newTrigger("sendMonthlyPdfReport")
+    .timeBased()
+    .onMonthDay(1)
+    .atHour(9)
+    .create();
+
+  Logger.log("✅ Monthly trigger created successfully!");
+}
