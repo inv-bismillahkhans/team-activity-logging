@@ -87,7 +87,21 @@ export async function GET(req: Request) {
       head: [["Name", "Date", "Type", "Description", "Duration", "Status"]],
       body: tableBody,
       margin: { top: 80, bottom: 25 },
-      styles: { fontSize: 9 },
+
+      styles: {
+        fontSize: 9,
+        overflow: "linebreak",   // 👈 wraps long text
+        cellPadding: 3,
+      },
+
+      columnStyles: {
+        0: { cellWidth: 30 },  // Name
+        1: { cellWidth: 25 },  // Date
+        2: { cellWidth: 25 },  // Type
+        3: { cellWidth: 60 },  // Description (bigger column)
+        4: { cellWidth: 25 },  // Duration
+        5: { cellWidth: 25 },  // Status
+      },
 
       didDrawPage: () => {
         const pageWidth = doc.internal.pageSize.getWidth()
