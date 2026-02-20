@@ -68,7 +68,6 @@ Create a `.env.local` file in root:
 GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account-email
 GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 GOOGLE_SHEET_ID=your-sheet-id
-NEXT_PUBLIC_EXPORT_URL=https://script.google.com/a/macros/innovaturelabs.com/s/AKfycbyV1a-W5oYMnsskrNdhS9HMLbNUrZI6OO6k-Oo4MVhJw85N1XAUdZld1z35fC-25ggY/exec
 NEXT_PUBLIC_SHEET_ID=your-sheet-id
 
 🔑 Google Sheets Configuration
