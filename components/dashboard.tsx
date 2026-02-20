@@ -26,13 +26,30 @@ export function Dashboard({ activities, members, activityTypes, onSelectDay, onO
     return isSameMonth && memberMatch && typeMatch
   })
 
+  const getActivityTypePriority = (typeId: string) => {
+    const type = activityTypes.find((t: any) => t.id === typeId)
+    return type?.priority ?? 3
+  }
+
   const activitiesByDate: { [key: number]: any[] } = {}
+
   filteredActivities.forEach((activity: any) => {
-    const day = activity.date.getDate()
+    const day = new Date(activity.date).getDate()
+
     if (!activitiesByDate[day]) {
       activitiesByDate[day] = []
     }
+
     activitiesByDate[day].push(activity)
+  })
+
+  Object.keys(activitiesByDate).forEach((day) => {
+    activitiesByDate[Number(day)].sort((a: any, b: any) => {
+      return (
+        getActivityTypePriority(a.activityType) -
+        getActivityTypePriority(b.activityType)
+      )
+    })
   })
 
   const getActivityTypeColor = (typeId: string) => {
