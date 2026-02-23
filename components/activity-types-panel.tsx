@@ -14,11 +14,19 @@ const defaultColors = ['#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444', '#
 
 const iconOptions = ['📅', '🎓', '📊', '💼', '🚀', '💻', '🤝', '⚡']
 
+const priorityOptions = [
+  { value: 1, label: 'High' },
+  { value: 2, label: 'Medium' },
+  { value: 3, label: 'Normal' },
+  { value: 4, label: 'Low' },
+]
+
 export function ActivityTypesPanel({ types, onAddType }: any) {
   const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState('')
   const [color, setColor] = useState(defaultColors[0])
   const [selectedIcon, setSelectedIcon] = useState(iconOptions[0])
+  const [priority, setPriority] = useState(3)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,6 +41,7 @@ export function ActivityTypesPanel({ types, onAddType }: any) {
       name,
       color,
       icon: selectedIcon,
+      priority,
     }
 
     onAddType(newType)
@@ -40,6 +49,7 @@ export function ActivityTypesPanel({ types, onAddType }: any) {
     setColor(defaultColors[0])
     setSelectedIcon(iconOptions[0])
     setShowForm(false)
+    setPriority(3)
   }
 
   return (
@@ -114,6 +124,26 @@ export function ActivityTypesPanel({ types, onAddType }: any) {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label className="text-foreground">Priority</Label>
+                <div className="grid grid-cols-4 gap-2">
+                  {priorityOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setPriority(option.value)}
+                      className={`p-2 rounded border text-sm ${
+                        priority === option.value
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border text-muted-foreground'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="flex gap-3 justify-end">
                 <Button
                   type="button"
@@ -145,6 +175,12 @@ export function ActivityTypesPanel({ types, onAddType }: any) {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-foreground">{type.name}</h3>
+                  <Badge
+                    variant="secondary"
+                    className="mt-1 text-xs"
+                  >
+                    Priority {type.priority}
+                  </Badge>
                   <div className="flex items-center gap-2 mt-2">
                     <div
                       className="w-4 h-4 rounded"

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { readSheet, appendRow, ensureHeaders, SHEET_NAMES } from '@/lib/google-sheets'
 
-const HEADERS = ['id', 'name', 'color', 'icon']
+const HEADERS = ['id', 'name', 'color', 'icon', 'priority']
 
 function rowToType(row: string[]) {
   return {
@@ -9,6 +9,7 @@ function rowToType(row: string[]) {
     name: row[1] || '',
     color: row[2] || '#000000',
     icon: row[3] || '•',
+    priority: Number(row[4] ?? 3),
   }
 }
 
@@ -36,6 +37,7 @@ export async function POST(request: Request) {
       body.name || '',
       body.color || '#000000',
       body.icon || '•',
+      body.priority ?? 3,
     ]
     await appendRow(SHEET_NAMES.ACTIVITY_TYPES, row)
     return NextResponse.json(body)
